@@ -14,7 +14,7 @@ void input_message(void);
 void set_message(void);
 void awards_number(void);
 void start_lottery(void);
-void unroll_lottery(void);
+void unroll_lottery(int n);
 void message(void);
 void roll_lottery(int b);
 void read_file_studmessage(int n);
@@ -26,6 +26,11 @@ void zhouyi(char *buf);
 void award_message(int n);
 void lottery(int i,int b);
 int num_prize(int j);
+void unlottery(int i,int b);
+void set_display(void);
+void play_show1(void);
+void play_show2(void);
+void play_show3(void);
 
 #define MAX 10
 #define MAX1 100
@@ -167,13 +172,20 @@ void start_lottery(void)
                 //break;
             }else if(!strcmp(line,"no"))
             {
-                unroll_lottery();}
+                unlottery(j,b);}
               //  break;
           //  }else{
                // puts("请按要求输入(\033[1;31myes\033[0m or \033[1;31mno\033[0m)");
           //  }
         }
-    
+            printf("_____________________________________\n");
+            printf("|\033[1;44m                                    \033[0m|\n");
+            printf("|\033[1;44m                                    \033[0m|\n");
+            printf("|\033[1;44m                 抽奖结束           \033[0m|\n");
+            printf("|\033[1;44m                                    \033[0m|\n");
+            printf("|\033[1;44m                                    \033[0m|\n");
+            printf("|\033[1;44m____________________________________\033[0m|\n");
+            set_display();
 }
 int num_prize(int j)
 {
@@ -189,6 +201,11 @@ void lottery(int i,int b)/*i每个奖项个数,b为第几等奖*/
 {
     for(int j=0;j<i;j++)
         roll_lottery(b);
+}
+void unlottery(int i,int b)/*i每个奖项个数,b为第几等奖*/
+{
+    for(int j=0;j<i;j++)
+        unroll_lottery(b);
 }
 void read_file_studmessage(int n)
 { 
@@ -209,8 +226,15 @@ void read_file_studmessage(int n)
     }
     fclose(stream);
 }
-void unroll_lottery(void)
+void unroll_lottery(int n)
 {
+    FILE *fp;
+    if(n==1)
+        fp = fopen("first_list.txt","a+");
+    if(n==2)
+        fp = fopen("second_list.txt","a+");
+    if(n==3)
+        fp = fopen("third_list.txt","a+");
     init_keyboard();
     int a,i;
     printf("\033[1;31m中奖号码:\033[0m \n");
@@ -224,6 +248,8 @@ void unroll_lottery(void)
     }
     close_keyboard(); 
     printf("\033[1;31m中奖号码是:\033[0m %s",my_buf[i]);
+    fputs(my_buf[i],fp);
+    fclose(fp);
     printf("\n");
 }
 void roll_lottery(int n)//n为第几等奖
@@ -297,4 +323,81 @@ int newkbhit(void)
         return 1;
     }
     return 0;
+}
+void set_display(void)
+{
+    puts("(选择你想输出的最终格式，now三种选项供你选择");
+    puts("example: ");
+    puts("\033[1;31m1)\033[0m只显示学号和姓名并且每一个奖项显示一排 eg:");
+    puts("一等奖：张三 837583096");
+    puts("\033[1;31m2)\033[0m只显示学号和姓名并且每一个奖项分排显示 eg:");
+    puts("一等奖：\n张三\n16375489");
+    puts("\033[1;31m3)\033[0m显示姓名以及获奖奖品 eg: ");
+    puts("张三 获得100万奖金)");
+    printf("\n\n");  
+    printf("请输入相应的序号：");
+    while(1)
+    {
+         int i = GetInteger();
+        if(i==1){
+            play_show1();break;}
+            else if(i==2)
+            { play_show2();break;}
+            else if(i==3){play_show3();break;}
+            else {puts("请输入正确序号：");}
+    }
+    
+        
+}
+void play_show1(void)
+{
+    FILE *fp,*fp1,*fp2;
+    char buff[MAX1];
+    char buff1[MAX1];
+    char buff2[MAX1];
+    fp = fopen("first_list.txt","r");
+    printf("一等奖: ");
+    fgets(buff,MAX1,fp);
+    fclose(fp);
+    printf("学号:%s",buff);
+    fp1 = fopen("second_list.txt","r");
+    printf("二等奖: ");
+    while(fgets(buff1,MAX1,fp1)){
+        string line=SubString(buff1,0,strlen(buff1)-2);
+        printf("学号:%s  ",line);}
+    fclose(fp1);
+    fp2 = fopen("third_list.txt","r");
+    puts("\n");
+    printf("三等奖: ");
+    while(fgets(buff2,MAX1,fp2)){
+        string line=SubString(buff2,0,strlen(buff1)-2);
+        printf("学号:%s  ",line);}
+    fclose(fp2);
+    
+}
+void play_show2(void)
+{
+    FILE *fp,*fp1,*fp2;
+    char buff[MAX1];
+    char buff1[MAX1];
+    char buff2[MAX1];
+    fp = fopen("first_list.txt","r");
+    printf("一等奖: \n");
+    fgets(buff,MAX1,fp);
+    fclose(fp);
+    printf("学号:%s",buff);
+    fp1 = fopen("second_list.txt","r");
+    printf("二等奖: \n");
+    while(fgets(buff1,MAX1,fp1)){
+        printf("学号:%s",buff1);}
+    fclose(fp1);
+    fp2 = fopen("third_list.txt","r");
+    printf("三等奖: \n");
+    while(fgets(buff2,MAX1,fp2)){
+        printf("学号:%s",buff2);}
+    fclose(fp2);
+}
+void play_show3(void)
+{
+    
 }
