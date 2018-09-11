@@ -103,6 +103,8 @@ void set_message(void){}
 void awards_number(void){}
 void set_awards(void)
 {
+    puts("修改奖品信息请输入1 否则输入0");
+    int i = GetInteger();
     puts("输入一等奖奖品: (输入over结束)");
     award_message(1);
     puts("输入二等奖奖品: (输入over结束)");
@@ -161,22 +163,12 @@ void start_lottery(void)
         puts("现在请选择你想抽取第几等奖");
         int b=GetInteger();
         j=num_prize(b);
-       // puts("抽奖时是否要求滚动显示啦(\033[1;31myes\033[0m or \033[1;31mno\033[0m)");
-        /*while(1){
-            char mybuff[MAX1];
-            fgets(mybuff,MAX1,stdin);
-            string line=SubString(mybuff,0,strlen(mybuff)-2);*/
             if(!strcmp(line,"yes"))
             {
                 lottery(j,b);
-                //break;
             }else if(!strcmp(line,"no"))
             {
                 unlottery(j,b);}
-              //  break;
-          //  }else{
-               // puts("请按要求输入(\033[1;31myes\033[0m or \033[1;31mno\033[0m)");
-          //  }
         }
             printf("_____________________________________\n");
             printf("|\033[1;44m                                    \033[0m|\n");
@@ -399,5 +391,54 @@ void play_show2(void)
 }
 void play_show3(void)
 {
+    
+    FILE *fp,*fp1,*fp2;
+    FILE *stream,*stream1,*stream2;
+    char buff[MAX1],mybuff[MAX1];
+    char buff1[MAX1],mybuff1[MAX1];
+    char buff2[MAX1],mybuff2[MAX1];
+    int i=1;
+    
+    fp = fopen("first_list.txt","r");
+    printf("一等奖: \n");
+    fgets(buff,MAX1,fp);
+    fclose(fp);
+    printf("学号:%s",buff);
+     printf("恭喜他喜提: ");
+    stream = fopen("first_awards.txt","r");
+    while(fgets(mybuff,MAX1,stream)){
+        string line=SubString(mybuff,0,strlen(mybuff)-2);
+        printf("%d) %s",i,line);
+        i++;
+    }
+    fclose(stream);
+    fp1 = fopen("second_list.txt","r");
+    printf("\n二等奖: \n");
+    while(fgets(buff1,MAX1,fp1)){
+        printf("学号:%s",buff1);}
+    fclose(fp1);
+    i=1;
+    printf("恭喜他们喜提: ");
+    stream1 = fopen("second_awards.txt","r");
+    while(fgets(mybuff1,MAX1,stream1)){
+        string line=SubString(mybuff1,0,strlen(mybuff1)-2);
+        printf("%d) %s",i,line);
+        i++;
+    }
+    fclose(stream1);
+    fp2 = fopen("third_list.txt","r");
+    printf("\n三等奖: \n");
+    while(fgets(buff2,MAX1,fp2)){
+        printf("学号:%s",buff2);}
+    fclose(fp2);
+    i=1;
+    printf("恭喜他们喜提: ");
+    stream2 = fopen("third_awards.txt","r");
+    while(fgets(mybuff2,MAX1,stream2)){
+        string line=SubString(mybuff2,0,strlen(mybuff2)-2);
+        printf("%d) %s",i,line);
+        i++;
+    }
+    fclose(stream2);
     
 }
