@@ -11,6 +11,8 @@
 
 void information(void);
 void input_message(void);
+void read_all_message(void);
+void modify_value(void);
 void set_message(void);
 void awards_number(void);
 void start_lottery(void);
@@ -36,6 +38,16 @@ void all_award(void);
 
 #define MAX 10
 #define MAX1 100
+typedef struct{
+    char *buff_name[MAX1];
+    char *buff_ID[MAX1];
+    char *buff_student_ID[MAX1];
+    char *buff_message[MAX1];
+    char *buff_sex[MAX1];
+    char *buff_grade[MAX1];
+}called;
+static called people;
+static int num;
 static struct termios old_set, new_set;
 static int flag=-1;
 static int num=0;
@@ -100,7 +112,123 @@ void information(void)
     printf("8: 历史信息清除\n");
     printf("0:退出程序\n");
 }
-void input_message(void){}
+void input_message(void)
+{
+     printf("请你按要求输入相应的信息,输入over结束.\n");
+     int i=0;
+     FILE *fp,*fd;
+     fp=fopen("message.txt","w");
+     fd=fopen("message.txt","a+");
+     char buff[MAX1]={' '};
+     printf("姓名:");
+     fgets(buff,MAX1,stdin);
+     string line=SubString(buff,0,strlen(buff)-2);
+     while(strcmp(line,"over"))
+     {
+         fputs(buff,fp);
+         fputs(buff,fd);
+         printf("学号:");
+         fgets(buff,MAX1,stdin);
+         fputs(buff,fp);
+         fputs(buff,fd);
+         printf("性别:");
+         fgets(buff,MAX1,stdin);
+         fputs(buff,fp);
+         fputs(buff,fd);
+         printf("身份ID:");
+         fgets(buff,MAX1,stdin);
+         fputs(buff,fp);
+         fputs(buff,fd);
+         printf("姓名:");
+         fgets(buff,MAX1,stdin);
+         line=SubString(buff,0,strlen(buff)-2);
+     }
+     fclose(fp);
+     fclose(fd);
+     read_all_message();
+     char mybuff[MAX1];
+     printf("\033[1;31m是否确定提交，一旦提交后便只能在文件目录message.txt中去修改\033[0m(\033[1;31myes\033[0m or \033[1;31mno\033[0m）\n");
+     fgets(mybuff,MAX1,stdin);
+     string word=SubString(mybuff,0,strlen(mybuff)-2);
+     if(!strcmp(word,"no"))
+         modify_value();
+     
+}
+void modify_value(void)
+{
+    int j;
+    printf("\033[1;31m现在将例出你输入的所有信息\033[0m");
+    for(int i=0;i<num;i++)
+    {
+        printf(" %d %s %s %s %s\n",i,people.buff_name[i],
+        people.buff_student_ID[i],
+        people.buff_sex[i],
+        people.buff_ID[i]);
+        
+    } 
+    printf("\033[1;31m选择你想修改的序数,如果想新增候选人请输入-1\033[0m");
+    j=GetInteger();
+    if(j==-1){
+        printf("姓名：");people.buff_name[num]=GetLine();
+        printf("学号：");people.buff_student_ID[num]=GetLine();
+        printf("性别：");people.buff_sex[num]=GetLine();
+        printf("身份：");people.buff_ID[num]=GetLine();
+    }else {
+        printf("\033[1;31m删除该候选人输1,修改输2\033[0m");
+        int k=GetInteger();
+        if(k==1){
+            people.buff_name[j]=people.buff_name[j+1];
+            people.buff_student_ID[j]=people.buff_student_ID[j+1];
+            people.buff_sex[j]=people.buff_sex[j+1];
+            people.buff_ID[j]=people.buff_ID[j+1];
+            num=num-1;
+        }else{
+            people.buff_name[j]=GetLine();
+            people.buff_student_ID[j]=GetLine();
+            people.buff_sex[j]=GetLine();
+            people.buff_ID[j]=GetLine();
+        }
+    }
+    for(int i=0;i<num;i++)
+    {
+        printf(" %d %s %s %s %s\n",i,people.buff_name[i],
+        people.buff_student_ID[i],
+        people.buff_sex[i],
+        people.buff_ID[i]);
+        
+    }
+    printf("\033[1;32m诺以上信息还存在错误，请在该文件目录下message.txt文档下去纠正\033[0m\n");
+}
+void read_all_message(void){
+    FILE *stream;
+    stream=fopen("message.txt","r");
+    char buf[MAX1];
+    char *my_buf[MAX1];
+    
+    while(fgets(buf,MAX1,stream)!= NULL){
+        int j=strlen(buf);
+        string aline=SubString(buf,0,j-2);
+        people.buff_name[num]=aline;
+        
+        fgets(buf,MAX1,stream);
+         j=strlen(buf);
+         aline=SubString(buf,0,j-2);
+        people.buff_student_ID[num]=aline;
+        
+        fgets(buf,MAX1,stream);
+         j=strlen(buf);
+         aline=SubString(buf,0,j-2);
+        people.buff_sex[num]=aline;
+        
+        fgets(buf,MAX1,stream);
+         j=strlen(buf);
+         aline=SubString(buf,0,j-2);
+        people.buff_ID[num]=aline;
+        
+        num++;
+    }
+    fclose(stream);
+}
 void set_message(void){}
 void awards_number(void){}
 void set_awards(void)
@@ -250,22 +378,15 @@ void unlottery(int i,int b)/*i每个奖项个数,b为第几等奖*/
 }
 void read_file_studmessage(int n)
 { 
-    FILE *stream;
-    char buf[MAX1];
     if(n==1)
-        stream = fopen("student_num","r");
+        for(int i=0;i<num;i++)
+            my_buf[i]=people.buff_student_ID[i];
     else if(n==2)
-        stream = fopen("student_name","r");
+        for(int j=0;j<num;j++)
+            my_buf[j]=people.buff_name[j];
     else if(n==3)
-        stream = fopen("student_idcard","r");
-    
-    while(fgets(buf,MAX1,stream)!= NULL){
-        int j=strlen(buf);
-        string aline=SubString(buf,0,j-2);
-        my_buf[num]=aline;
-        num++;
-    }
-    fclose(stream);
+        for(int k=0;k<num;k++)
+            my_buf[k]=people.buff_name[k];
 }
 void unroll_lottery(int n)
 {
