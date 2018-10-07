@@ -36,6 +36,10 @@ void revamp_award(void);
 void show_message(int n);
 void all_award(void);
 
+//void statistics(int n, int a);
+void query(void);
+void delete();
+
 #define MAX 10
 #define MAX1 100
 typedef struct{
@@ -52,6 +56,9 @@ static struct termios old_set, new_set;
 static int flag=-1;
 static int num=0;
 static char *my_buf[MAX1]={" "};
+
+static int a[MAX1];
+static int level = 0;
  
 int main()
 {
@@ -62,10 +69,10 @@ int main()
     while(1){ 
         information();
         struct termios old,new;
-        tcgetattr(0,&old);
+        tcgetattr(0,&old);//取得当前值，保存在结构体old中。
         new=old;
-        new.c_lflag &= ~ECHO;
-        tcsetattr(0,TCSANOW,&new);
+        new.c_lflag &= ~ECHO;//c_lflag局部模式。ECHO：设置此位则启用回显，即在终端显示输入字符。
+        tcsetattr(0,TCSANOW,&new);//设置当前值为new
         int i=GetInteger();
         tcsetattr(0,TCSANOW,&old);
         if(i==0)break;
@@ -80,6 +87,10 @@ int main()
                 set_awards();break;
             case 5:
                 start_lottery();break;
+            case 7:
+                query();break;
+            case 8:
+                delete();break;
             case 0:
                 break;
             default:
@@ -109,7 +120,7 @@ void information(void)
     printf("5:开始抽奖\n");
     printf("6:抽奖历史信息的统计\n");
     printf("7:历史信息的查询\n");
-    printf("8: 历史信息清除\n");
+    printf("8:历史信息清除\n");
     printf("0:退出程序\n");
 }
 void input_message(void)
@@ -118,7 +129,7 @@ void input_message(void)
      int i=0;
      FILE *fp,*fd;
      fp=fopen("message.txt","w");
-     fd=fopen("message.txt","a+");
+     fd=fopen("allmessage.txt","a+");
      char buff[MAX1]={' '};
      printf("姓名:");
      fgets(buff,MAX1,stdin);
@@ -173,6 +184,7 @@ void modify_value(void)
         printf("学号：");people.buff_student_ID[num]=GetLine();
         printf("性别：");people.buff_sex[num]=GetLine();
         printf("身份：");people.buff_ID[num]=GetLine();
+        num++;
     }else {
         printf("\033[1;31m删除该候选人输1,修改输2\033[0m");
         int k=GetInteger();
@@ -229,8 +241,34 @@ void read_all_message(void){
     }
     fclose(stream);
 }
-void set_message(void){}
-void awards_number(void){}
+
+void set_message(void)
+{
+    printf("请输入活动名称：\n");
+	char ch0[MAX1], ch1[MAX1];
+    FILE *fp0, *fp1;
+    fp0=fopen("tital.txt", "w+");
+	fgets(ch0, MAX1, stdin);
+    fputs(ch0,fp0);
+    printf("请输入活动简介：\n");
+    fp1=fopen("introduction.txt", "w+");
+	fgets(ch1, MAX1, stdin);
+    fputs(ch1,fp1);
+    
+    fclose(fp0);
+    fclose(fp1);
+}
+
+void awards_number(void)
+{
+    printf("您一共需要几等奖？\n");
+	level=GetInteger();
+	printf("请输入每等几分别有几个，从一等奖开始\n",level);
+	for(int i=1;i<=level;i++){
+		a[i]=GetInteger();
+	}
+}
+
 void set_awards(void)
 {
     puts("修改奖品信息请输入1 否则输入0");
@@ -325,6 +363,21 @@ void start_lottery(void)
         default:
             break;
     }
+    
+    //输出活动名称和简介
+    FILE *fp0, *fp1;
+    char ch0[MAX1], ch1[MAX1];
+    fp0=fopen("tital.txt", "r");
+    fp1=fopen("introduction.txt", "r");
+    fgets(ch0,MAX1,fp0);
+    fgets(ch1,MAX1,fp1);
+    fputs(ch0,stdout);
+    fputs(ch1,stdout);
+    
+    fclose(fp0);
+    fclose(fp1);
+    
+    
     printf("一起都要准备就绪了哟，马上即将开始抽奖\n");
     puts("现在进入最后一个设置哟！抽奖时是否要求滚动显示啦(\033[1;31myes\033[0m or \033[1;31mno\033[0m)");
     while(1){
@@ -339,10 +392,10 @@ void start_lottery(void)
     for(int k=1;k<=3;k++){
         puts("现在请选择你想抽取第几等奖");
         int b=GetInteger();
-        j=num_prize(b);
+        //j=num_prize(b);
             if(!strcmp(line,"yes"))
             {
-                lottery(j,b);
+                lottery(a[b],b);
             }else if(!strcmp(line,"no"))
             {
                 unlottery(j,b);}
@@ -356,7 +409,8 @@ void start_lottery(void)
             printf("|\033[1;44m____________________________________\033[0m|\n");
             set_display();
 }
-int num_prize(int j)
+
+/*int num_prize(int j)
 {
     if(j==1)
         return 1;
@@ -365,7 +419,8 @@ int num_prize(int j)
     if(j==3)
         return 3;
     return 0;
-}
+}*/
+
 void lottery(int i,int b)/*i每个奖项个数,b为第几等奖*/
 {
     for(int j=0;j<i;j++)
@@ -442,8 +497,11 @@ void roll_lottery(int n)//n为第几等奖
             printf(" ");
             printf("\r\033[1;31m中奖号码：\033[0m%s",buf);
             if(newkbhit())break;
-             fflush(stdout);
+            fflush(stdout);
     }
+    
+ //   statistics(n ,a);
+    
     close_keyboard();
     fputs(buf,fp);
     fputs("\n",fp);
@@ -456,11 +514,11 @@ void init_keyboard(void)
     tcgetattr(0,&old_set);
     new_set=old_set;
     new_set.c_lflag &= ~ECHO;
-    new_set.c_lflag &= ~ICANON;
-    new_set.c_lflag &= ~ISIG;
-    new_set.c_cc[VMIN]=1;
-    new_set.c_cc[VTIME]=0;
-    tcsetattr(0,TCSANOW,&new_set);
+    new_set.c_lflag &= ~ICANON;//设置此位则使用加工方式输入，这使EOF、EOL等字符也起作用，这些字符也被装配到输入行中。
+    new_set.c_lflag &= ~ISIG;//此位控制是否识别INTR、OUIT等特殊字符。内核会将输入字符与这些特殊字符相比较，相同则生成对应信号。
+    new_set.c_cc[VMIN]=1;//c_cc特殊控制模式。VMIN非加工方式，MIN值。
+    new_set.c_cc[VTIME]=0;//VTIME非加工方式，TIME值。
+    tcsetattr(0,TCSANOW,&new_set);//改变终端属性，TCSANOW立即作出改变。
 }
 
 void close_keyboard(void)
@@ -598,6 +656,7 @@ void play_show3(void)
     
 }
 
+
 void show_message(int n)
 {
     FILE *fp;
@@ -616,5 +675,92 @@ void show_message(int n)
         string line=SubString(buff,0,strlen(buff)-2);
         printf("学号:%s  ",line);}
         printf("\n");
+    fclose(fp);
+}
+
+/*
+void statistics( int n, int a)
+{
+    FILE *fp;
+    switch(n){
+        case 1:
+            fp=fopen("first.txt", "a+");
+            break;
+        case 2:
+            fp=fopen("second.txt", "a+");
+            break;
+        case 3:
+            fp=fopen("third.txt", "a+");
+            break;
+    }
+    fprintf(fp, "%d", a);
+    fclose(fp);
+}*/
+
+void query(void)
+{
+    //int n=0;
+    FILE *fp;
+    /*called s;
+    fp1=fopen("message.txt","r");
+    while(!feof(fp1))
+    {
+        fscanf(fp1,"%s" "%d" "%s" "%d",
+               s.buff_name[n], &s.buff_student_ID[n], s.buff_sex[n],&s.buff_ID[n]);
+        n++;
+    }*/
+    
+    printf("请问需要查询几等奖的中奖信息：");
+    int n, a;
+    char c[MAX1];
+    n=GetInteger();
+    switch(n){
+        case 1:
+            fp=fopen("first_list.txt", "r");
+            break;
+        case 2:
+            fp=fopen("second_list.txt", "r");
+            break;
+        case 3:
+            fp=fopen("third_list.txt", "r");
+            break;
+    }
+    if(fp==NULL){
+        printf("没有中奖人信息\n");
+    }
+
+    
+    while(fscanf(fp,"%s", c)>0){
+        /*for(int i=0;i<num;i++){
+            if(a==*people.buff_student_ID[i]){
+                printf("姓名：%s\n",people.buff_name[i]);*/
+                printf("%s\n",c);
+       // }
+        //}
+    }
+     /*   char ch[MAX1];
+        fread(ch,sizeof(ch),MAX,fp);
+        printf("%s",ch);*/
+    fclose(fp);
+}
+
+void delete()
+{
+    printf("请问需要删除几等奖的中奖信息：\n");
+    int n;
+    FILE *fp;
+    n=GetInteger();
+    switch(n){
+        case 1:
+            fp=fopen("first_list.txt", "w");
+            break;
+        case 2:
+            fp=fopen("second_list.txt", "w");
+            break;
+        case 3:
+            fp=fopen("third_list.txt", "w");
+            break;
+    }
+    fputs(" ",fp);
     fclose(fp);
 }
