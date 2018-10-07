@@ -36,10 +36,15 @@ void revamp_award(void);
 void show_message(int n);
 void all_award(void);
 
-//void statistics(int n, int a);
 void query(void);
 void delete();
 
+void Message_visted(void);
+void Lottery_Method(void);
+void Set_awards_species(int q);
+void Single(void);
+void More(void);
+bool Judge(int a);
 #define MAX 10
 #define MAX1 100
 typedef struct{
@@ -51,7 +56,6 @@ typedef struct{
     char *buff_grade[MAX1];
 }called;
 static called people;
-static int num;
 static struct termios old_set, new_set;
 static int flag=-1;
 static int num=0;
@@ -59,6 +63,11 @@ static char *my_buf[MAX1]={" "};
 
 static int a[MAX1];
 static int level = 0;
+static int ordinal[MAX1];
+static int number=0;//统计中奖序数
+static int z=0;
+static char *word[MAX1];
+bool message_visited[MAX1];
  
 int main()
 {
@@ -87,9 +96,9 @@ int main()
                 set_awards();break;
             case 5:
                 start_lottery();break;
-            case 7:
+            case 6:
                 query();break;
-            case 8:
+            case 7:
                 delete();break;
             case 0:
                 break;
@@ -118,9 +127,8 @@ void information(void)
     printf("3:定抽奖奖项以及每个奖项个数\n");
     printf("4:抽奖奖品信息设置\n");
     printf("5:开始抽奖\n");
-    printf("6:抽奖历史信息的统计\n");
-    printf("7:历史信息的查询\n");
-    printf("8:历史信息清除\n");
+    printf("6:历史信息的查询\n");
+    printf("7:历史信息清除\n");
     printf("0:退出程序\n");
 }
 void input_message(void)
@@ -261,6 +269,9 @@ void set_message(void)
 
 void awards_number(void)
 {
+    printf("请问你是采取单组抽奖（输入1）或者多组抽奖（输入2）？");
+    int q=GetInteger();
+    Set_awards_species(2);
     printf("您一共需要几等奖？\n");
 	level=GetInteger();
 	printf("请输入每等几分别有几个，从一等奖开始\n",level);
@@ -351,6 +362,20 @@ void start_lottery(void)
 {
     int b,j;
     string line;
+    
+    Message_visted();
+    //输出活动名称和简介
+    FILE *fp0, *fp1;
+    char ch0[MAX1], ch1[MAX1];
+    fp0=fopen("tital.txt", "r");
+    fp1=fopen("introduction.txt", "r");
+    fgets(ch0,MAX1,fp0);
+    fgets(ch1,MAX1,fp1);
+    printf("\033[1;32m%s\033[0m \033[1;32m%s\033[0m",ch0,ch1);
+    
+    fclose(fp0);
+    fclose(fp1);
+    
     puts("请选择抽奖候选人信息（1：学号2：姓名3：身份证号）输入相应序号");
     int i=GetInteger();
     switch(i){
@@ -364,20 +389,6 @@ void start_lottery(void)
             break;
     }
     
-    //输出活动名称和简介
-    FILE *fp0, *fp1;
-    char ch0[MAX1], ch1[MAX1];
-    fp0=fopen("tital.txt", "r");
-    fp1=fopen("introduction.txt", "r");
-    fgets(ch0,MAX1,fp0);
-    fgets(ch1,MAX1,fp1);
-    fputs(ch0,stdout);
-    fputs(ch1,stdout);
-    
-    fclose(fp0);
-    fclose(fp1);
-    
-    
     printf("一起都要准备就绪了哟，马上即将开始抽奖\n");
     puts("现在进入最后一个设置哟！抽奖时是否要求滚动显示啦(\033[1;31myes\033[0m or \033[1;31mno\033[0m)");
     while(1){
@@ -388,11 +399,10 @@ void start_lottery(void)
             else if(!strcmp(line,"no"))break;
             else puts("请按要求输入(\033[1;31myes\033[0m or \033[1;31mno\033[0m)");
     }
-    
+    if(z==1){
     for(int k=1;k<=3;k++){
         puts("现在请选择你想抽取第几等奖");
         int b=GetInteger();
-        //j=num_prize(b);
             if(!strcmp(line,"yes"))
             {
                 lottery(a[b],b);
@@ -400,6 +410,25 @@ void start_lottery(void)
             {
                 unlottery(j,b);}
         }
+    }else {
+        for(int h=1;h<=z;h++)
+        {
+            Message_visted();
+            number=0;
+            printf("\033[1;32m即将开始抽奖的奖项时：%s\033[0m\n",word[h]);
+            for(int k=1;k<=3;k++){
+        puts("现在请选择你想抽取第几等奖");
+        int b=GetInteger();
+            if(!strcmp(line,"yes"))
+            {
+                lottery(a[b],b);
+            }else if(!strcmp(line,"no"))
+            {
+                unlottery(j,b);}
+        }
+         set_display();
+        }
+    }
             printf("_____________________________________\n");
             printf("|\033[1;44m                                    \033[0m|\n");
             printf("|\033[1;44m                                    \033[0m|\n");
@@ -407,19 +436,7 @@ void start_lottery(void)
             printf("|\033[1;44m                                    \033[0m|\n");
             printf("|\033[1;44m                                    \033[0m|\n");
             printf("|\033[1;44m____________________________________\033[0m|\n");
-            set_display();
 }
-
-/*int num_prize(int j)
-{
-    if(j==1)
-        return 1;
-    if(j==2)
-        return 2;
-    if(j==3)
-        return 3;
-    return 0;
-}*/
 
 void lottery(int i,int b)/*i每个奖项个数,b为第几等奖*/
 {
@@ -446,6 +463,7 @@ void read_file_studmessage(int n)
 void unroll_lottery(int n)
 {
     FILE *fp;
+    
     if(n==1)
         fp = fopen("first_list.txt","a+");
     if(n==2)
@@ -464,6 +482,8 @@ void unroll_lottery(int n)
         fflush(stdout);
     }
     close_keyboard(); 
+    ordinal[number]=i;
+    number++;
     printf("\033[1;31m中奖号码是:\033[0m %s",my_buf[i]);
     fputs(my_buf[i],fp);
     fclose(fp);
@@ -474,7 +494,9 @@ void roll_lottery(int n)//n为第几等奖
     char buf[MAX1]={" "};
     char ch;
     int i=0,j=0;
-    FILE *fp;
+    FILE *fp, *fd;
+    fd=fopen("allaward_list.txt", "a+");
+    
     if(n==1)
         fp = fopen("first_list.txt","a+");
     if(n==2)
@@ -490,22 +512,39 @@ void roll_lottery(int n)//n为第几等奖
     while(1){
             i = strlen(buf);
             memset(buf, 0, 100);
-            strcpy(buf, my_buf[a]);
             a=RandomInteger(0,num-1);
+            strcpy(buf, my_buf[a]);
             printf("\r\033[1;31m中奖号码：\033[0m ");
             for(j = 0; j < i; j++)
             printf(" ");
-            printf("\r\033[1;31m中奖号码：\033[0m%s",buf);
+            if(Judge(a))
+                printf("\r\033[1;31m中奖号码：\033[0m%s",buf);
+            else 
+            {
+                while(1){
+            i = strlen(buf);
+            memset(buf, 0, 100);
+            a=RandomInteger(0,num-1);
+            strcpy(buf, my_buf[a]);           
+             if(Judge(a)){
+                printf("\r\033[1;31m中奖号码：\033[0m%s",buf); break;message_visited[a]=0;}
+             else 
+                 a=RandomInteger(0,num-1);
+            }
+            }
             if(newkbhit())break;
             fflush(stdout);
     }
-    
- //   statistics(n ,a);
-    
     close_keyboard();
+    message_visited[a]=0;
+    ordinal[number]=a;
+    number++;
     fputs(buf,fp);
     fputs("\n",fp);
+    fputs(buf,fd);
+    fputs("\n",fd);
     fclose(fp);
+    fclose(fd);
     printf("\n");
 }
 
@@ -556,51 +595,53 @@ void set_display(void)
     puts("张三 获得100万奖金)");
     printf("\n\n");  
     printf("请输入相应的序号：");
-    while(1)
-    {
-            int k = GetInteger();
-            if(k == 1)
-            {
-                play_show1();break;
-            }else if(k == 2)
-            {
-                play_show2();break;
-            }else if(k == 3)
-            {
-                play_show3();break;
-            }else {
-                puts("请输入正确序号：");}
-            
-    }
-    
+        while(1)
+        {
+                int k = GetInteger();
+                if(k == 1)
+                {
+                    play_show1();break;
+                }else if(k == 2)
+                {
+                    play_show2();break;
+                }else if(k == 3)
+                {
+                    play_show3();break;
+                }else {
+                    puts("请输入正确序号：");}
+                
+        }
+                
         
 }
 void play_show1(void)
 {
-    for(int i=1;i<=3;i++)
-        show_message(i);
+    for(int i=0;i<6;i++)
+    {
+        if(i==0)
+        printf("一等奖：");
+        if(i==1)
+        printf("\n二等奖: ");
+        if(i==3)
+        printf("\n三等奖: ");
+        int j=ordinal[i];
+        printf("%s %s ",people.buff_name[j],people.buff_student_ID[j]);
+    }
+    printf("\n");
 }
 void play_show2(void)
 {
-    FILE *fp,*fp1,*fp2;
-    char buff[MAX1];
-    char buff1[MAX1];
-    char buff2[MAX1];
-    fp = fopen("first_list.txt","r");
-    printf("一等奖: \n");
-    fgets(buff,MAX1,fp);
-    fclose(fp);
-    printf("学号:%s",buff);
-    fp1 = fopen("second_list.txt","r");
-    printf("二等奖: \n");
-    while(fgets(buff1,MAX1,fp1)){
-        printf("学号:%s",buff1);}
-    fclose(fp1);
-    fp2 = fopen("third_list.txt","r");
-    printf("三等奖: \n");
-    while(fgets(buff2,MAX1,fp2)){
-        printf("学号:%s",buff2);}
-    fclose(fp2);
+    for(int i=0;i<6;i++)
+    {
+        if(i==0)
+        printf("一等奖：\n");
+        if(i==1)
+        printf("二等奖: \n");
+        if(i==3)
+        printf("三等奖: \n");
+        int j=ordinal[i];
+        printf("%s\n%s\n",people.buff_name[j],people.buff_student_ID[j]);
+    }
 }
 void play_show3(void)
 {
@@ -656,62 +697,11 @@ void play_show3(void)
     
 }
 
-
-void show_message(int n)
-{
-    FILE *fp;
-    char buff[MAX1];
-    if(n==1){
-        fp = fopen("first_list.txt","r");
-        printf("一等奖: ");
-    }else if(n==2){
-        fp = fopen("second_list.txt","r");
-        printf("二等奖: ");
-    }else if(n==3){
-        fp = fopen("third_list.txt","r");
-        printf("三等奖: ");
-    }
-    while(fgets(buff,MAX1,fp)){
-        string line=SubString(buff,0,strlen(buff)-2);
-        printf("学号:%s  ",line);}
-        printf("\n");
-    fclose(fp);
-}
-
-/*
-void statistics( int n, int a)
-{
-    FILE *fp;
-    switch(n){
-        case 1:
-            fp=fopen("first.txt", "a+");
-            break;
-        case 2:
-            fp=fopen("second.txt", "a+");
-            break;
-        case 3:
-            fp=fopen("third.txt", "a+");
-            break;
-    }
-    fprintf(fp, "%d", a);
-    fclose(fp);
-}*/
-
 void query(void)
 {
-    //int n=0;
     FILE *fp;
-    /*called s;
-    fp1=fopen("message.txt","r");
-    while(!feof(fp1))
-    {
-        fscanf(fp1,"%s" "%d" "%s" "%d",
-               s.buff_name[n], &s.buff_student_ID[n], s.buff_sex[n],&s.buff_ID[n]);
-        n++;
-    }*/
-    
     printf("请问需要查询几等奖的中奖信息：");
-    int n, a;
+    int n;
     char c[MAX1];
     n=GetInteger();
     switch(n){
@@ -729,18 +719,28 @@ void query(void)
         printf("没有中奖人信息\n");
     }
 
-    
-    while(fscanf(fp,"%s", c)>0){
-        /*for(int i=0;i<num;i++){
-            if(a==*people.buff_student_ID[i]){
-                printf("姓名：%s\n",people.buff_name[i]);*/
-                printf("%s\n",c);
-       // }
-        //}
+    int b;
+    while(fscanf(fp,"%s", c)>0)
+    {
+        if(n==1){
+            for(int i=0;i<a[1];i++){
+                b=ordinal[i];
+                printf("%s %s\n",people.buff_name[b],c);
+            }
+        }
+        if(n==2){
+            for(int i=a[1];i<=(a[1]+a[2]-1);i++){
+                b=ordinal[i];
+                printf("%s %s\n",people.buff_name[b],c);
+            }
+        }
+        if(n==3){
+            for(int i=(a[1]+a[2]);i<=(a[1]+a[2]+a[3]-1);i++){
+                b=ordinal[i];
+                printf("%s %s\n",people.buff_name[b],c);
+            }
+        }
     }
-     /*   char ch[MAX1];
-        fread(ch,sizeof(ch),MAX,fp);
-        printf("%s",ch);*/
     fclose(fp);
 }
 
@@ -763,4 +763,74 @@ void delete()
     }
     fputs(" ",fp);
     fclose(fp);
+}
+void Message_visted()//初始化
+{
+    int i;
+    for(i=0;i<num;i++)
+    {
+        message_visited[i]=1;
+    }
+}
+
+void Lottery_Method(void)
+{
+	int q;
+	printf("请问你是采取单组抽奖（输入1）或者多组抽奖（输入2）？");
+    q=GetInteger();
+	switch(q){
+		case 1:Single();break;
+		case 2:More();break;
+		default:
+            printf("输入错误，请重新输入");
+            Lottery_Method();break;
+	}
+}
+
+
+void Single(void)
+{
+    start_lottery();        
+}
+
+void Set_awards_species(int q)//设置多种奖项的名称
+{
+    int i=1;
+    char name[MAX1]={' '};
+    FILE *p;
+    p=fopen("awards_species.txt","w");
+    string line;
+       printf("请输入想设置的奖项名称（输入over结束）：");
+        fgets(name,MAX1,stdin);
+       line=SubString(name,0,strlen(name)-2);
+       word[i]=line; 
+       while(strcmp(word[i],"over"))    
+        {    
+            fputs(name,p);
+            fgets(name,MAX1,stdin);
+            i++;
+            line=SubString(name,0,strlen(name)-2);   
+            word[i]=line; 
+        }
+        z=i-1;
+    fclose(p);
+}
+        
+void More(void)
+{    
+    Set_awards_species(2);
+    for(int i=1;i<=z;i++){
+        printf("即将开始抽奖的奖项时：%s\n",word[i]);
+        //start_lottery();
+        
+   }
+        
+}
+bool Judge(int a)
+{
+    if(message_visited[a]==1)
+    {
+        return 1;
+    } else
+    return 0;
 }
