@@ -269,7 +269,7 @@ void set_message(void)
 
 void awards_number(void)
 {
-    printf("请问你是采取单组抽奖（输入1）或者多组抽奖（输入2）？");
+    printf("请问你是采取单组抽奖（输入1）或者多组抽奖（输入2）？\n");
     int q=GetInteger();
     Set_awards_species(2);
     printf("您一共需要几等奖？\n");
@@ -408,8 +408,9 @@ void start_lottery(void)
                 lottery(a[b],b);
             }else if(!strcmp(line,"no"))
             {
-                unlottery(j,b);}
+                unlottery(a[b],b);}
         }
+        set_display();
     }else {
         for(int h=1;h<=z;h++)
         {
@@ -424,7 +425,7 @@ void start_lottery(void)
                 lottery(a[b],b);
             }else if(!strcmp(line,"no"))
             {
-                unlottery(j,b);}
+                unlottery(a[b],b);}
         }
          set_display();
         }
@@ -445,6 +446,7 @@ void lottery(int i,int b)/*i每个奖项个数,b为第几等奖*/
 }
 void unlottery(int i,int b)/*i每个奖项个数,b为第几等奖*/
 {
+    printf("开始抽奖：\n");
     for(int j=0;j<i;j++)
         unroll_lottery(b);
 }
@@ -463,7 +465,6 @@ void read_file_studmessage(int n)
 void unroll_lottery(int n)
 {
     FILE *fp;
-    
     if(n==1)
         fp = fopen("first_list.txt","a+");
     if(n==2)
@@ -472,12 +473,26 @@ void unroll_lottery(int n)
         fp = fopen("third_list.txt","a+");
     init_keyboard();
     int a,i;
-    printf("\033[1;31m中奖号码:\033[0m \n");
     getchar();
     while(1){
         int a=RandomInteger(0,num-1);
-        printf("%s\n",my_buf[a]);
         i=a;
+        if(Judge(i))
+                printf("%s\n",my_buf[a]);
+            else 
+            {
+                while(1){
+                    a=RandomInteger(0,num-1);    
+                    i=a;
+                    if(Judge(i)){
+                    printf("%s\n",my_buf[a]); 
+                    break;
+                    message_visited[i]=0;
+                    }
+                    else
+                        i=RandomInteger(0,num-1);
+                }
+            }
         if(newkbhit())break;
         fflush(stdout);
     }
@@ -487,6 +502,9 @@ void unroll_lottery(int n)
     printf("\033[1;31m中奖号码是:\033[0m %s",my_buf[i]);
     fputs(my_buf[i],fp);
     fclose(fp);
+    
+    message_visited[i]=0;
+    
     printf("\n");
 }
 void roll_lottery(int n)//n为第几等奖
@@ -616,13 +634,13 @@ void set_display(void)
 }
 void play_show1(void)
 {
-    for(int i=0;i<6;i++)
+    for(int i=0;i<a[1]+a[2]+a[3];i++)
     {
         if(i==0)
         printf("一等奖：");
-        if(i==1)
+        if(i==a[1])
         printf("\n二等奖: ");
-        if(i==3)
+        if(i==a[1]+a[2])
         printf("\n三等奖: ");
         int j=ordinal[i];
         printf("%s %s ",people.buff_name[j],people.buff_student_ID[j]);
@@ -631,13 +649,13 @@ void play_show1(void)
 }
 void play_show2(void)
 {
-    for(int i=0;i<6;i++)
+    for(int i=0;i<a[1]+a[2]+a[3];i++)
     {
         if(i==0)
         printf("一等奖：\n");
-        if(i==1)
+        if(i==a[1])
         printf("二等奖: \n");
-        if(i==3)
+        if(i==a[1]+a[2])
         printf("三等奖: \n");
         int j=ordinal[i];
         printf("%s\n%s\n",people.buff_name[j],people.buff_student_ID[j]);
@@ -704,44 +722,26 @@ void query(void)
     int n;
     char c[MAX1];
     n=GetInteger();
-    switch(n){
-        case 1:
-            fp=fopen("first_list.txt", "r");
-            break;
-        case 2:
-            fp=fopen("second_list.txt", "r");
-            break;
-        case 3:
-            fp=fopen("third_list.txt", "r");
-            break;
-    }
-    if(fp==NULL){
-        printf("没有中奖人信息\n");
-    }
-
     int b;
-    while(fscanf(fp,"%s", c)>0)
-    {
+    
         if(n==1){
             for(int i=0;i<a[1];i++){
                 b=ordinal[i];
-                printf("%s %s\n",people.buff_name[b],c);
+                printf("%s %s\n",people.buff_name[b],people.buff_student_ID[b]);
             }
         }
         if(n==2){
             for(int i=a[1];i<=(a[1]+a[2]-1);i++){
                 b=ordinal[i];
-                printf("%s %s\n",people.buff_name[b],c);
+                printf("%s %s\n",people.buff_name[b],people.buff_student_ID[b]);
             }
         }
         if(n==3){
             for(int i=(a[1]+a[2]);i<=(a[1]+a[2]+a[3]-1);i++){
                 b=ordinal[i];
-                printf("%s %s\n",people.buff_name[b],c);
+                printf("%s %s\n",people.buff_name[b],people.buff_student_ID[b]);
             }
         }
-    }
-    fclose(fp);
 }
 
 void delete()
@@ -773,26 +773,6 @@ void Message_visted()//初始化
     }
 }
 
-void Lottery_Method(void)
-{
-	int q;
-	printf("请问你是采取单组抽奖（输入1）或者多组抽奖（输入2）？");
-    q=GetInteger();
-	switch(q){
-		case 1:Single();break;
-		case 2:More();break;
-		default:
-            printf("输入错误，请重新输入");
-            Lottery_Method();break;
-	}
-}
-
-
-void Single(void)
-{
-    start_lottery();        
-}
-
 void Set_awards_species(int q)//设置多种奖项的名称
 {
     int i=1;
@@ -800,7 +780,7 @@ void Set_awards_species(int q)//设置多种奖项的名称
     FILE *p;
     p=fopen("awards_species.txt","w");
     string line;
-       printf("请输入想设置的奖项名称（输入over结束）：");
+       printf("请输入想设置的奖项名称（输入over结束）：\n");
         fgets(name,MAX1,stdin);
        line=SubString(name,0,strlen(name)-2);
        word[i]=line; 
@@ -816,16 +796,6 @@ void Set_awards_species(int q)//设置多种奖项的名称
     fclose(p);
 }
         
-void More(void)
-{    
-    Set_awards_species(2);
-    for(int i=1;i<=z;i++){
-        printf("即将开始抽奖的奖项时：%s\n",word[i]);
-        //start_lottery();
-        
-   }
-        
-}
 bool Judge(int a)
 {
     if(message_visited[a]==1)
