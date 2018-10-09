@@ -176,7 +176,7 @@ void input_message(void)
 void modify_value(void)
 {
     int j;
-    printf("\033[1;31m现在将例出你输入的所有信息\033[0m");
+    printf("\033[1;31m现在将例出你输入的所有信息\033[0m\n");
     for(int i=0;i<num;i++)
     {
         printf(" %d %s %s %s %s\n",i,people.buff_name[i],
