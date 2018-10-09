@@ -197,10 +197,13 @@ void modify_value(void)
         printf("\033[1;31m删除该候选人输1,修改输2\033[0m");
         int k=GetInteger();
         if(k==1){
-            people.buff_name[j]=people.buff_name[j+1];
-            people.buff_student_ID[j]=people.buff_student_ID[j+1];
-            people.buff_sex[j]=people.buff_sex[j+1];
-            people.buff_ID[j]=people.buff_ID[j+1];
+            for(int n=0;n<num-j-1;n++){
+                people.buff_name[j]=people.buff_name[j+1];
+                people.buff_student_ID[j]=people.buff_student_ID[j+1];
+                people.buff_sex[j]=people.buff_sex[j+1];
+                people.buff_ID[j]=people.buff_ID[j+1];
+                j++;
+            }
             num=num-1;
         }else{
             people.buff_name[j]=GetLine();
@@ -274,7 +277,7 @@ void awards_number(void)
     Set_awards_species(2);
     printf("您一共需要几等奖？\n");
 	level=GetInteger();
-	printf("请输入每等几分别有几个，从一等奖开始\n",level);
+	printf("请输入每等奖分别有几个，从一等奖开始\n");
 	for(int i=1;i<=level;i++){
 		a[i]=GetInteger();
 	}
@@ -400,7 +403,7 @@ void start_lottery(void)
             else puts("请按要求输入(\033[1;31myes\033[0m or \033[1;31mno\033[0m)");
     }
     if(z==1){
-    for(int k=1;k<=3;k++){
+    for(int k=1;k<=level;k++){
         puts("现在请选择你想抽取第几等奖");
         int b=GetInteger();
             if(!strcmp(line,"yes"))
@@ -417,7 +420,7 @@ void start_lottery(void)
             Message_visted();
             number=0;
             printf("\033[1;32m即将开始抽奖的奖项时：%s\033[0m\n",word[h]);
-            for(int k=1;k<=3;k++){
+            for(int k=1;k<=level;k++){
         puts("现在请选择你想抽取第几等奖");
         int b=GetInteger();
             if(!strcmp(line,"yes"))
